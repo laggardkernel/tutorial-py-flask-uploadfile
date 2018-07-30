@@ -1,0 +1,8 @@
+{
+    "python.pythonPath": "~/.local/share/pyenv/versions/tutorial-py-flask-pastefile-anFWzhIE/bin/python",
+    "cSpell.words": [
+        "filemd",
+        "getenv",
+        "rpartition"
+    ]
+}
