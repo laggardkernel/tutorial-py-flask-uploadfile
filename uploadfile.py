@@ -25,4 +25,6 @@ def make_shell_context():
 def deploy():
     from flask_migrate import upgrade
 
+    db.drop_all()
     upgrade()
+    db.create_all()

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # vim: fileencoding=utf-8 fdm=indent sw=4 ts=4 sts=4 et
 
-from flask import request, abort, jsonify
+from flask import request, abort, jsonify, current_app, send_from_directory, redirect
 from . import main
 from app.ext import db, render_template
 from app.models import UploadedFile
 from app.utils import humanize_bytes
+
+ONE_MONTH = 60 * 60 * 24 * 30
 
 
 @main.route('/', methods=['GET', 'POST'])
@@ -41,3 +43,39 @@ def index():
         )
 
     return render_template('index.html', **locals())
+
+
+@main.route('/r/<img_hash>')
+def resize(img_hash):
+    w = request.args.get('w')
+    h = request.args.get('h')
+
+    if w and h:
+        old_file = UploadedFile.query.filter_by(filehash=img_hash).first_or_404()
+        new_file = UploadedFile.resize(old_file, w, h)
+        return new_file.url_i
+
+
+@main.route('/d/<filehash>')
+def download(filehash):
+    # Note: the filehash contains file extension
+    uploaded_file = UploadedFile.query.filter_by(filehash=filehash).first_or_404()
+    return send_from_directory(
+        current_app.config['UPLOAD_FOLDER'],
+        filename=uploaded_file.filehash,
+        cache_timeout=ONE_MONTH,
+        as_attachment=True,
+        attachment_filename=uploaded_file.filename,
+    )
+
+
+@main.route('/p/<filehash>')
+def preview(filehash):
+    uploaded_file = UploadedFile.query.filter_by(filehash=filehash).first_or_404()
+    return render_template('success.html', p=uploaded_file)
+
+
+@main.route('/s/<shortlink>')
+def s(shortlink):
+    uploaded_file = UploadedFile.get_file_by_shortlink(shortlink)
+    return redirect(uploaded_file.url_p)

@@ -5,7 +5,7 @@ import uuid
 import os
 from datetime import datetime
 from werkzeug import secure_filename, cached_property
-from flask import request
+from flask import request, abort
 from app._compat import quote_plus
 from app.ext import db, Model
 from app.utils import get_file_md5, get_file_path
@@ -104,6 +104,11 @@ class UploadedFile(Model):
     @property
     def quoteurl(self):
         return quote_plus(self.url_i)
+
+    @classmethod
+    def get_file_by_shortlink(cls, shortlink, code=404):
+        id = short_url.decode_url(shortlink)
+        return cls.query.filter_by(id=id).first() or abort(code)
 
     # Helpers
 

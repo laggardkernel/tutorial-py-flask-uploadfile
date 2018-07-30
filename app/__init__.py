@@ -5,7 +5,6 @@ from flask import Flask
 from werkzeug import SharedDataMiddleware
 from config import config
 from app.ext import db, mako
-from app.utils import get_file_path
 
 
 def create_app(config_name='default'):
