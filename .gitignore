@@ -410,3 +410,9 @@ dmypy.json
 .pyre/
 
 ### Custom ###
+*.sqlite3
+*.sqlite
+
+.envrc
+
+tmp/

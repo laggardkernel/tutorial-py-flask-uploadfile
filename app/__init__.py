@@ -14,15 +14,22 @@ def create_app(config_name='default'):
     '''
     app = Flask(__name__)
     app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
 
     # init of plugins
-
-    # blueprints
     db.init_app(app)
     mako.init_app(app)
 
+    # blueprints
+    from app.main import main as main_blueprint
+
+    app.register_blueprint(main_blueprint)
+
     # TODO: ?
-    # read source file by SharedDataMiddleware
-    app.wsgi_app = SharedDataMiddleware(app.wsgi_app, {'/i/': get_file_path()})
+    # http://flask.palletsprojects.com/en/1.1.x/patterns/fileuploads/
+    # Read source file by SharedDataMiddleware
+    app.wsgi_app = SharedDataMiddleware(
+        app.wsgi_app, {'/i/': app.config['UPLOAD_FOLDER']}
+    )
 
     return app

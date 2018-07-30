@@ -13,6 +13,9 @@ python-dotenv = "*"
 flask-sqlalchemy = "*"
 flask-migrate = "*"
 flask-mako = "*"
+cropresize2 = "*"
+pillow = "*"
+short-url = "*"
 
 [requires]
 python_version = "3.6"

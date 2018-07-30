@@ -12,12 +12,14 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Relative to project root folder
-    UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER') or '/tmp/permdir'
+    UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER') or os.path.join(
+        basedir, 'tmp/permdir'
+    )
 
     @classmethod
     def init_app(cls, app):
         if not os.path.exists(cls.UPLOAD_FOLDER):
-            os.mkdir(cls.UPLOAD_FOLDER)
+            os.makedirs(cls.UPLOAD_FOLDER, exist_ok=True)
 
 
 class DevelopmentConfig(Config):

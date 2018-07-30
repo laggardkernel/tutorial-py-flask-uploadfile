@@ -6,8 +6,6 @@ import hashlib
 from functools import partial
 from config import Config
 
-basedir = os.path.dirname(os.path.abspath(__file__))
-
 
 def get_file_md5(f, chunk_size=1024 * 8):
     r = hashlib.md5()
@@ -37,4 +35,4 @@ def humanize_bytes(bytesize, precision=2):
     return '%.*f %s' % (precision, bytesize / factor, unit)
 
 
-get_file_path = partial(os.path.join, basedir, Config.UPLOAD_FOLDER)
+get_file_path = partial(os.path.join, Config.UPLOAD_FOLDER)

@@ -3,6 +3,7 @@
 
 import os
 from flask_migrate import Migrate
+from config import config
 from app import create_app
 from app.ext import db
 from app.models import UploadedFile
@@ -17,7 +18,7 @@ def make_shell_context():
     '''
     Load models into shell by default
     '''
-    return dict(app=app, db=db, UploadedFile=UploadedFile)
+    return dict(app=app, db=db, config=config, UploadedFile=UploadedFile)
 
 
 @app.cli.command()

@@ -1,1 +1,1 @@
-FLASK_APP="pastefile.py"
+FLASK_APP="uploadfile.py"
