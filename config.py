@@ -28,6 +28,12 @@ class DevelopmentConfig(Config):
         'DEV_DATABASE_URL'
     ) or 'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite3')
 
+    @classmethod
+    def init_app(cls, app):
+        from flask_debugtoolbar import DebugToolbarExtension
+
+        toolbar = DebugToolbarExtension(app)  # noqa: F841
+
 
 class TestingConfig(Config):
     TESTING = True
@@ -35,6 +41,12 @@ class TestingConfig(Config):
         'DEV_DATABASE_URL'
     ) or 'sqlite:///' + os.path.join(basedir, 'data-test.sqlite3')
     WTF_CSRF_ENABLED = False
+
+    @classmethod
+    def init_app(cls, app):
+        from flask_debugtoolbar import DebugToolbarExtension
+
+        toolbar = DebugToolbarExtension(app)  # noqa: F841
 
 
 class ProductionConfig(Config):
