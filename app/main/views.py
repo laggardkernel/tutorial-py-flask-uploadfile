@@ -20,13 +20,12 @@ def index():
         if not uploaded_file:
             return abort(400)  # Bad Request
 
-        with db.auto_commit():
-            # TODO: unique constraint failed
-            if w and h:
-                uploaded_file = UploadedFile.resize(uploaded_file, w, h)
-            else:
-                uploaded_file = UploadedFile.create_by_uploaded_file(uploaded_file)
-            db.session.add(uploaded_file)
+        # TODO: unique constraint failed
+        if w and h:
+            uploaded_file = UploadedFile.resize(uploaded_file, w, h)
+        else:
+            uploaded_file = UploadedFile.create_by_uploaded_file(uploaded_file)
+        uploaded_file.save()
 
         return jsonify(
             {
@@ -51,7 +50,7 @@ def resize(img_hash):
     h = request.args.get('h')
 
     if w and h:
-        old_file = UploadedFile.query.filter_by(filehash=img_hash).first_or_404()
+        old_file = UploadedFile.objects.get_or_404(filehash=img_hash)
         new_file = UploadedFile.resize(old_file, w, h)
         return new_file.url_i
 
@@ -59,7 +58,7 @@ def resize(img_hash):
 @main.route('/d/<filehash>')
 def download(filehash):
     # Note: the filehash contains file extension
-    uploaded_file = UploadedFile.query.filter_by(filehash=filehash).first_or_404()
+    uploaded_file = UploadedFile.objects.get_or_404(filehash=filehash)
     return send_from_directory(
         current_app.config['UPLOAD_FOLDER'],
         filename=uploaded_file.filehash,
@@ -71,7 +70,7 @@ def download(filehash):
 
 @main.route('/p/<filehash>')
 def preview(filehash):
-    uploaded_file = UploadedFile.query.filter_by(filehash=filehash).first_or_404()
+    uploaded_file = UploadedFile.objects.get_or_404(filehash=filehash)
     return render_template('success.html', p=uploaded_file)
 
 

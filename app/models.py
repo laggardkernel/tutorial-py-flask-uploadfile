@@ -7,25 +7,58 @@ from datetime import datetime
 from werkzeug import secure_filename, cached_property
 from flask import request, abort
 from app._compat import quote_plus
-from app.ext import db, Model
 from app.utils import get_file_md5, get_file_path
 from app.mimes import IMAGE_MIMES, AUDIO_MIMES, VIDEO_MIMES
 import cropresize2
 from PIL import Image
 import short_url
 
+from mongoengine import (
+    Document as BaseDocument,
+    connect,
+    ValidationError,
+    DoesNotExist,
+    QuerySet,
+    MultipleObjectsReturned,
+    IntField,
+    DateTimeField,
+    StringField,
+    SequenceField,
+)
 
-class UploadedFile(Model):
-    __tablename__ = 'uploadedfiles'
-    id = db.Column(db.Integer, nullable=False, primary_key=True)
+connect(
+    'r',
+    host='localhost',
+    port=27017,
+    username='root',
+    password='password',
+    authentication_source='admin',
+)
+
+
+class BaseQuerySet(QuerySet):
+    def get_or_404(self, *args, **kwargs):
+        try:
+            return self.get(*args, **kwargs)
+        except (MultipleObjectsReturned, DoesNotExist, ValidationError):
+            abort(404)
+
+
+class Document(BaseDocument):
+    meta = {'abstract': True, "queryset_class": BaseQuerySet}
+
+
+class UploadedFile(Document):
+    meta = {'collection': 'uploadedfiles'}
+    id = SequenceField(primary_key=True)
     # filename: original name and name used to display in the web page
-    filename = db.Column(db.String(5000), nullable=False)
+    filename = StringField(max_length=5000, null=False)
     # filehash: random name used in storage
-    filehash = db.Column(db.String(128), nullable=False, unique=True)
-    filemd5 = db.Column(db.String(128), nullable=False, unique=True)
-    uploaded_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    mimetype = db.Column(db.String(256), nullable=False)
-    size = db.Column(db.Integer, nullable=False, default=0)
+    filehash = StringField(max_length=128, null=False, unique=True)
+    filemd5 = StringField(max_length=128, null=False, unique=True)
+    uploaded_time = DateTimeField(null=False)
+    mimetype = StringField(max_length=256, null=False)
+    size = IntField(null=False)
 
     def __init__(
         self,
@@ -34,7 +67,19 @@ class UploadedFile(Model):
         size=0,
         filehash=None,
         filemd5=None,
+        *args,
+        **kwargs,
     ):
+        super().__init__(
+            filename=filename,
+            mimetype=mimetype,
+            size=size,
+            filehash=filehash,
+            filemd5=filemd5,
+            *args,
+            **kwargs,
+        )
+        self.uploaded_time = datetime.utcnow()
         # the mimetype is provided in the uploaded file by the browser
         self.mimetype = mimetype
         self.size = int(size)
@@ -62,7 +107,7 @@ class UploadedFile(Model):
         # skip saving current file if the same file exists (comparision by md5)
         with open(r.path, 'rb') as f:
             filemd5 = get_file_md5(f)
-            uploaded_file = cls.query.filter_by(filemd5=filemd5).first()
+            uploaded_file = cls.objects(filemd5=filemd5)
             if uploaded_file:
                 os.remove(r.path)
                 return uploaded_file
@@ -115,7 +160,7 @@ class UploadedFile(Model):
     @classmethod
     def get_file_by_shortlink(cls, shortlink, code=404):
         id = short_url.decode_url(shortlink)
-        return cls.query.filter_by(id=id).first() or abort(code)
+        return cls.objects.get_or_404(id=id)
 
     # Helpers
 
