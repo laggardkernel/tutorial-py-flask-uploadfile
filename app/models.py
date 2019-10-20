@@ -18,7 +18,9 @@ import short_url
 class UploadedFile(Model):
     __tablename__ = 'uploadedfiles'
     id = db.Column(db.Integer, nullable=False, primary_key=True)
+    # filename: original name and name used to display in the web page
     filename = db.Column(db.String(5000), nullable=False)
+    # filehash: random name used in storage
     filehash = db.Column(db.String(128), nullable=False, unique=True)
     filemd5 = db.Column(db.String(128), nullable=False, unique=True)
     uploaded_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -33,12 +35,14 @@ class UploadedFile(Model):
         filehash=None,
         filemd5=None,
     ):
-        self.uploaded_time = datetime.utcnow()
+        # the mimetype is provided in the uploaded file by the browser
         self.mimetype = mimetype
         self.size = int(size)
+        # random name used in storage
         self.filehash = filehash if filehash else self.__hash_filename(filename)
         # TODO: secure filename with db event listener
         self.filename = secure_filename(filename) if filename else self.filehash
+        # the real identifier for the file
         self.filemd5 = filemd5
 
     @staticmethod
@@ -70,6 +74,9 @@ class UploadedFile(Model):
 
     @classmethod
     def resize(cls, old_file, width, height):
+        """
+        Resize the image and return a new image (the old one is kept)
+        """
         assert old_file.is_image, TypeError('Unsupported Image Type.')
 
         img = cropresize2.crop_resize(
