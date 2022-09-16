@@ -7,7 +7,7 @@ flask-sqlalchemy==2.4.1
 flask==1.1.1
 itsdangerous==1.1.0
 jinja2==2.10.3
-mako==1.1.0
+mako==1.2.2
 markupsafe==1.1.1
 mongoengine==0.18.2
 pillow==6.2.1
